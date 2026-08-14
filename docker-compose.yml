@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Base de Datos PostgreSQL con soporte para PL/pgSQL
+  db:
+    image: postgres:15-alpine
+    container_name: pharma_db
+    restart: always
+    environment:
+      POSTGRES_USER: gxp_admin
+      POSTGRES_PASSWORD: gxp_secure_password_2026
+      POSTGRES_DB: pharma_narcotics_db
+    # Mapeo de scripts de inicialización DDL y Triggers
+    volumes:
+      - ./database/init:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
+    # Red privada interna: NO exponemos el puerto 5432 al host en producción
+    networks:
+      - pharma_private_network
+
+  # Backend API (FastAPI)
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pharma_api
+    restart: always
+    environment:
+      DATABASE_URL: postgresql+asyncpg://gxp_admin:gxp_secure_password_2026@db:5432/pharma_narcotics_db
+      SECRET_KEY: gxp_jwt_secret_key_change_in_production
+      ALGORITHM: HS256
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - pharma_private_network
+
+networks:
+  pharma_private_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
