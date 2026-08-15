@@ -9,6 +9,7 @@ from backend.app.core.security import verify_password, verify_totp_code, create_
 from backend.app.models.domain import Usuario
 from backend.app.schemas.ledger import LoginRequest, Token, TokenData
 
+# Gestiona el login con MFA y la inyección del usuario autenticado
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
