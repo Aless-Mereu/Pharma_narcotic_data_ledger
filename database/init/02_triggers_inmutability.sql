@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION prevent_update_or_delete()
 RETURNS TRIGGER AS $$
 BEGIN
     RAISE EXCEPTION 'VIOLACIÓN DE INTEGRIDAD GxP (Anexo 11): Los registros transaccionales o de auditoría en la tabla % no se pueden modificar ni eliminar. Utilice transacciones de Storno/Anulación.', TG_TABLE_NAME
-        USING ERRCODE = 'RESTRICT_VIOLATION';
+        USING ERRCODE = '23001';
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;

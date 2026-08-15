@@ -5,19 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="aeb0a3e6-9c5e-478a-85af-ba50890b7d7e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/Pharma_narcotic_data_ledger.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/database/init/01_schema_ddl.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/database/init/02_triggers_inmutability.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/database/init/03_seed_data.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/FDS_Arquitectura_Sistema_Estupefacientes.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/TDS_Modelo_BBDD_Triggers_Estupefacientes.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/URS_DIRA_Libro_Estupefacientes.docx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/init/02_triggers_inmutability.sql" beforeDir="false" afterPath="$PROJECT_DIR$/database/init/02_triggers_inmutability.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/TDS_Modelo_BBDD_Triggers_Estupefacientes.docx" beforeDir="false" afterPath="$PROJECT_DIR$/docs/TDS_Modelo_BBDD_Triggers_Estupefacientes.docx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/URS_DIRA_Libro_Estupefacientes.docx" beforeDir="false" afterPath="$PROJECT_DIR$/docs/URS_DIRA_Libro_Estupefacientes.docx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,9 +19,21 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 3
-}]]></component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Aless-Mereu&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Aless-Mereu/Pharma_narcotic_data_ledger.git&quot;,
+    &quot;accountId&quot;: &quot;929d4bb4-1422-4134-a578-7d1336f90631&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
   <component name="ProjectId" id="3HtvEkGnBbK4KPZuGTNVu8Ol5XZ" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -38,16 +42,16 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "C:/Users/Usuario/PycharmProjects/PythonProject/Pharma_narcotic_data_ledger/docs"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Usuario/PycharmProjects/PythonProject/Pharma_narcotic_data_ledger/docs&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Usuario\PycharmProjects\PythonProject\Pharma_narcotic_data_ledger\docs" />
