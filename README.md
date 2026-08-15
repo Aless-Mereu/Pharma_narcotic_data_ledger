@@ -275,6 +275,25 @@ El proyecto incluye configuración para levantar los servicios mediante Docker C
 
 Desde la raíz del proyecto:Para detener los servicios:Si quieres eliminar también volúmenes asociados:---
 
+## Credenciales de demostración
+
+El entorno local incluye usuarios de demostración creados mediante los scripts de inicialización de base de datos, con el objetivo de facilitar la revisión del proyecto.
+
+Estas credenciales permiten probar los flujos principales de la aplicación, como autenticación, consulta del ledger, registro de movimientos controlados y validaciones de trazabilidad.
+
+| Rol | Usuario | Contraseña |
+|---|---|---|
+| Administrador demo | `<DEMO_ADMIN_USER>` | `<DEMO_ADMIN_PASSWORD>` |
+| Usuario operativo demo | `<DEMO_OPERATOR_USER>` | `<DEMO_OPERATOR_PASSWORD>` |
+| Auditor demo | `<DEMO_AUDITOR_USER>` | `<DEMO_AUDITOR_PASSWORD>` |
+
+> Las credenciales anteriores son exclusivamente para entorno local/demo.  
+> No representan usuarios reales y no deben utilizarse en producción.
+
+### Nota de seguridad
+
+El proyecto está preparado para trabajar con configuración externa mediante variables de entorno.  
+En un entorno real, credenciales, claves de firma, URLs de base de datos y secretos de aplicación deben gestionarse fuera del repositorio.
 ## Testing
 
 El proyecto incluye pruebas automatizadas orientadas a validar aspectos críticos del sistema.
