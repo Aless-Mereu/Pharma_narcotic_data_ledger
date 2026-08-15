@@ -1,8 +1,13 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 import logging
-
+import csv
+import io
+from fastapi.responses import StreamingResponse
+from backend.app.models.domain import AuditTrail
+from backend.app.schemas.ledger import AuditTrailResponse, LedgerEntryResponse
 from backend.app.core.database import get_db
 from backend.app.core.security import verify_password, verify_totp_code
 from backend.app.models.domain import LibroEstupefacientes, Usuario
@@ -170,3 +175,76 @@ async def storno_movement(
     logger.info(
         f"Storno registrado con éxito: Movimiento {mov_storno.id_movimiento} anula Movimiento {mov_original.id_movimiento}")
     return mov_storno
+
+@router.get("/book/{id_producto}", response_model=List[LedgerEntryResponse])
+async def get_official_ledger(
+    id_producto: int,
+    current_user: Usuario = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    query = (
+        select(LibroEstupefacientes)
+        .where(LibroEstupefacientes.id_producto == id_producto)
+        .order_by(LibroEstupefacientes.id_movimiento.asc())
+    )
+    result = await db.execute(query)
+    entries = result.scalars().all()
+    return entries
+
+
+@router.get("/audit-trail", response_model=List[AuditTrailResponse])
+async def get_audit_trail(
+    limit: int = 50,
+    current_user: Usuario = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    query = select(AuditTrail).order_by(AuditTrail.id_audit.desc()).limit(limit)
+    result = await db.execute(query)
+    trails = result.scalars().all()
+    return trails
+
+
+@router.get("/export/csv/{id_producto}")
+async def export_ledger_csv(
+    id_producto: int,
+    current_user: Usuario = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    query = (
+        select(LibroEstupefacientes)
+        .where(LibroEstupefacientes.id_producto == id_producto)
+        .order_by(LibroEstupefacientes.id_movimiento.asc())
+    )
+    result = await db.execute(query)
+    records = result.scalars().all()
+
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=';')
+    writer.writerow([
+        "ID_ASIENTO", "FECHA_HORA_NTP", "TIPO_MOVIMIENTO", "LOTE",
+        "CADUCIDAD", "CANTIDAD", "SALDO", "DOC_REFERENCIA",
+        "DESTINO_PRESCRIPTOR", "MOTIVO_AJUSTE", "ESTADO"
+    ])
+
+    for r in records:
+        writer.writerow([
+            r.id_movimiento,
+            r.timestamp_servidor.isoformat(),
+            r.tipo_movimiento,
+            r.num_lote,
+            r.fecha_caducidad.isoformat(),
+            r.cantidad,
+            r.saldo_resultante,
+            r.doc_referencia,
+            r.prescriptor_destino or "",
+            r.motivo_ajuste or "",
+            r.estado
+        ])
+
+    output.seek(0)
+    filename = f"Libro_Oficial_Estupefacientes_Prod_{id_producto}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
