@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Libro Oficial de Estupefacientes | GxP Ledger</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
+
+  <!-- TOP BAR -->
+  <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center shadow-md">
+    <div class="flex items-center space-x-3">
+      <div class="bg-teal-500 text-slate-900 p-2 rounded-lg font-bold">
+        <i class="fa-solid fa-shield-halved text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-wide">PHARMA NARCOTICS LEDGER</h1>
+        <p class="text-xs text-slate-400">GAMP 5 / 21 CFR Part 11 / Anexo 11 Validated System</p>
+      </div>
+    </div>
+
+    <!-- Auth Session Status -->
+    <div id="authStatus" class="flex items-center space-x-4">
+      <div id="userInfo" class="hidden text-right text-xs">
+        <span id="userNameDisplay" class="font-bold text-teal-400 block"></span>
+        <span id="userRoleDisplay" class="text-slate-400"></span>
+      </div>
+      <button id="logoutBtn" onclick="logout()" class="hidden bg-red-950 hover:bg-red-900 text-red-300 border border-red-800 text-xs px-3 py-1.5 rounded transition">
+        Cerrar Sesión
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto p-6 space-y-6">
+
+    <!-- LOGIN MODAL / CARD (Visible si no hay token) -->
+    <section id="loginSection" class="max-w-md mx-auto bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl space-y-4">
+      <div class="text-center space-y-1">
+        <h2 class="text-xl font-bold text-slate-100">Acceso Seguro GxP</h2>
+        <p class="text-xs text-slate-400">Requiere autenticación de doble factor (MFA/TOTP)</p>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Usuario</label>
+          <input type="text" id="loginUser" value="farmaceutico_regente" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-teal-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Contraseña</label>
+          <input type="password" id="loginPass" value="GxPPass2026!" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-teal-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Código MFA (TOTP / Authenticator)</label>
+          <input type="text" id="loginTotp" placeholder="6 dígitos" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-teal-400 font-mono tracking-widest text-center focus:outline-none focus:border-teal-500">
+        </div>
+        <button onclick="login()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 rounded text-sm transition shadow-lg mt-2">
+          Iniciar Sesión
+        </button>
+      </div>
+      <div id="loginMsg" class="text-xs text-center text-red-400 min-h-[1rem]"></div>
+    </section>
+
+    <!-- DASHBOARD & APP SECTION (Oculto por defecto) -->
+    <div id="appSection" class="hidden space-y-6">
+
+      <!-- CARDS DE RESUMEN DE STOCK -->
+      <section>
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Catálogo y Balances Oficiales</h2>
+          <button onclick="loadSummary()" class="text-xs text-teal-400 hover:text-teal-300 flex items-center gap-1">
+            <i class="fa-solid fa-rotate"></i> Actualizar
+          </button>
+        </div>
+        <div id="stockGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Dinámico -->
+        </div>
+      </section>
+
+      <!-- SECCIÓN ACCIONES Y LIBRO OFICIAL -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- FORMULARIO DE FIRMA ELECTRÓNICA (ASIENTOS / STORNO) -->
+        <section class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg space-y-4">
+          <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
+            <h3 class="font-bold text-sm text-slate-100 flex items-center gap-2">
+              <i class="fa-solid fa-signature text-teal-400"></i> Asiento / Firma GxP
+            </h3>
+            <span class="text-[10px] bg-teal-950 text-teal-400 border border-teal-800 px-2 py-0.5 rounded">21 CFR Part 11</span>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="block text-slate-400 mb-1">Producto</label>
+              <select id="formProduct" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 focus:border-teal-500"></select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-slate-400 mb-1">Tipo Movimiento</label>
+                <select id="formType" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 focus:border-teal-500">
+                  <option value="ENTRADA">ENTRADA</option>
+                  <option value="SALIDA">SALIDA</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Cantidad (Uds)</label>
+                <input type="number" id="formQty" min="1" value="10" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 focus:border-teal-500">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-slate-400 mb-1">Nº Lote</label>
+                <input type="text" id="formLot" value="LOT-MB-2026-02" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 focus:border-teal-500">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Caducidad</label>
+                <input type="date" id="formExp" value="2028-12-31" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 focus:border-teal-500">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-slate-400 mb-1">Doc. Referencia / Albarán / Receta</label>
+              <input type="text" id="formRef" value="ALB-2026-EXP-11" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 focus:border-teal-500">
+            </div>
+
+            <div>
+              <label class="block text-slate-400 mb-1">Origen / Destino / Prescriptor</label>
+              <input type="text" id="formDest" value="Farmacia Hospitalaria Central" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 focus:border-teal-500">
+            </div>
+
+            <!-- FIRMA DIGITAL CON RE-AUTENTICACIÓN -->
+            <div class="bg-slate-900 p-3 rounded border border-slate-700 space-y-2 mt-2">
+              <span class="text-[11px] font-bold text-amber-400 block"><i class="fa-solid fa-lock"></i> Re-autenticación Obligatoria</span>
+              <div>
+                <input type="password" id="signPass" placeholder="Contraseña de firma" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs mb-2 focus:border-teal-500">
+                <input type="text" id="signTotp" placeholder="Código TOTP actual" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-teal-400 font-mono tracking-widest text-center focus:border-teal-500">
+              </div>
+            </div>
+
+            <button onclick="submitMovement()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 rounded text-xs transition shadow mt-2">
+              Firmar y Asentar en Libro Oficial
+            </button>
+            <div id="signMsg" class="text-[11px] text-center min-h-[1rem]"></div>
+          </div>
+        </section>
+
+        <!-- LIBRO DILIGENCIADO / HISTORIAL INMUTABLE -->
+        <section class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-700 pb-3">
+            <div>
+              <h3 class="font-bold text-sm text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-book-medical text-teal-400"></i> Asientos Registrados (Libro Oficial)
+              </h3>
+              <p class="text-[11px] text-slate-400">Secuencia cronológica inmutable</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="exportCSV()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1.5 rounded flex items-center gap-1 border border-slate-600 transition">
+                <i class="fa-solid fa-file-csv text-teal-400"></i> Exportar CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- TABLA DE ASIENTOS -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-900 text-slate-400 border-b border-slate-700">
+                  <th class="py-2.5 px-3"># ID</th>
+                  <th class="py-2.5 px-3">Fecha NTP</th>
+                  <th class="py-2.5 px-3">Tipo</th>
+                  <th class="py-2.5 px-3 text-right">Cant.</th>
+                  <th class="py-2.5 px-3 text-right">Saldo</th>
+                  <th class="py-2.5 px-3">Referencia / Lote</th>
+                  <th class="py-2.5 px-3">Firmante</th>
+                </tr>
+              </thead>
+              <tbody id="ledgerTableBody" class="divide-y divide-slate-700">
+                <!-- Dinámico -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- JAVASCRIPT APP LOGIC -->
+  <script>
+    let token = localStorage.getItem("gxp_token") || null;
+    let selectedProductId = 1;
+    let productsList = [];
+
+    window.onload = () => {
+      if (token) {
+        showApp();
+      }
+    };
+
+    async function login() {
+      const user = document.getElementById("loginUser").value;
+      const pass = document.getElementById("loginPass").value;
+      const totp = document.getElementById("loginTotp").value;
+      const msg = document.getElementById("loginMsg");
+      msg.textContent = "";
+
+      try {
+        const res = await fetch("/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: user, password: pass, totp_code: totp })
+        });
+
+        const contentType = res.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) {
+          const text = await res.text();
+          throw new Error(`Ruta no encontrada o error de servidor (HTTP ${res.status}). Verifica el endpoint.`);
+        }
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Fallo de autenticación");
+        }
+
+        token = data.access_token;
+        localStorage.setItem("gxp_token", token);
+        showApp();
+      } catch (err) {
+        msg.textContent = err.message;
+      }
+    }
+    function logout() {
+      localStorage.removeItem("gxp_token");
+      token = null;
+      document.getElementById("loginSection").classList.remove("hidden");
+      document.getElementById("appSection").classList.add("hidden");
+      document.getElementById("userInfo").classList.add("hidden");
+      document.getElementById("logoutBtn").classList.add("hidden");
+    }
+
+    async function showApp() {
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("appSection").classList.remove("hidden");
+      document.getElementById("userInfo").classList.remove("hidden");
+      document.getElementById("logoutBtn").classList.remove("hidden");
+
+      document.getElementById("userNameDisplay").textContent = "Dra. Laura Martínez Gómez";
+      document.getElementById("userRoleDisplay").textContent = "FARMACEUTICO REGENTE";
+
+      await loadSummary();
+      await loadTraceability(selectedProductId);
+    }
+
+    async function loadSummary() {
+      try {
+        const res = await fetch("/ledger/metrics/summary", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (res.status === 401) { logout(); return; }
+        productsList = await res.json();
+
+        const grid = document.getElementById("stockGrid");
+        const select = document.getElementById("formProduct");
+        grid.innerHTML = "";
+        select.innerHTML = "";
+
+        productsList.forEach(p => {
+          // Card
+          const isSelected = p.id_producto === selectedProductId;
+          const card = document.createElement("div");
+          card.className = `p-4 rounded-xl border transition cursor-pointer ${
+            isSelected ? "bg-slate-800 border-teal-500 ring-1 ring-teal-500" : "bg-slate-800/60 border-slate-700 hover:border-slate-600"
+          }`;
+          card.onclick = () => {
+            selectedProductId = p.id_producto;
+            loadSummary();
+            loadTraceability(p.id_producto);
+          };
+          card.innerHTML = `
+            <div class="flex justify-between items-start">
+              <span class="text-[10px] bg-slate-700 text-teal-400 font-mono px-1.5 py-0.5 rounded">CN: ${p.codigo_nacional}</span>
+              <span class="text-[10px] text-slate-400">${p.lista_estupefaciente}</span>
+            </div>
+            <h4 class="font-bold text-sm text-slate-100 mt-2">${p.nombre_comercial}</h4>
+            <p class="text-[11px] text-slate-400 truncate">${p.principio_activo}</p>
+            <div class="mt-4 flex justify-between items-baseline">
+              <span class="text-xs text-slate-400">Stock Actual</span>
+              <span class="text-xl font-bold font-mono ${p.stock_actual > 0 ? 'text-teal-400' : 'text-slate-500'}">${p.stock_actual} <span class="text-xs font-normal">uds</span></span>
+            </div>
+          `;
+          grid.appendChild(card);
+
+          // Select option
+          const opt = document.createElement("option");
+          opt.value = p.id_producto;
+          opt.textContent = `${p.nombre_comercial} (Stock: ${p.stock_actual})`;
+          if (p.id_producto === selectedProductId) opt.selected = true;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        console.error("Error al cargar summary:", err);
+      }
+    }
+
+    async function loadTraceability(productId) {
+      try {
+        const res = await fetch(`/ledger/metrics/traceability/${productId}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const tbody = document.getElementById("ledgerTableBody");
+        tbody.innerHTML = "";
+
+        if (data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">Sin asientos registrados para este producto</td></tr>`;
+          return;
+        }
+
+        data.forEach(m => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-700/40 transition";
+
+          let badgeColor = "bg-teal-950 text-teal-300 border-teal-800";
+          if (m.tipo_movimiento === "SALIDA") badgeColor = "bg-rose-950 text-rose-300 border-rose-800";
+          if (m.tipo_movimiento === "AJUSTE_STORNO") badgeColor = "bg-amber-950 text-amber-300 border-amber-800";
+
+          tr.innerHTML = `
+            <td class="py-2 px-3 font-mono text-slate-400">#${m.id_movimiento}</td>
+            <td class="py-2 px-3 text-slate-300">${m.timestamp_servidor.replace('T', ' ').slice(0, 19)}</td>
+            <td class="py-2 px-3">
+              <span class="text-[10px] font-semibold border px-2 py-0.5 rounded ${badgeColor}">
+                ${m.tipo_movimiento}
+              </span>
+            </td>
+            <td class="py-2 px-3 text-right font-mono font-bold ${m.tipo_movimiento === 'SALIDA' ? 'text-rose-400' : 'text-teal-400'}">
+              ${m.tipo_movimiento === 'SALIDA' ? '-' : '+'}${m.cantidad}
+            </td>
+            <td class="py-2 px-3 text-right font-mono font-bold text-slate-100">${m.saldo_resultante}</td>
+            <td class="py-2 px-3">
+              <div class="text-slate-200">${m.doc_referencia}</div>
+              <div class="text-[10px] text-slate-400">Lote: ${m.num_lote}</div>
+            </td>
+            <td class="py-2 px-3">
+              <div class="text-slate-300">${m.usuario_firma_nombre}</div>
+              <div class="text-[10px] text-slate-500">${m.usuario_firma_rol}</div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Error al cargar trazabilidad:", err);
+      }
+    }
+
+    async function submitMovement() {
+      const msg = document.getElementById("signMsg");
+      msg.textContent = "";
+
+      const payload = {
+        id_producto: parseInt(document.getElementById("formProduct").value),
+        tipo_movimiento: document.getElementById("formType").value,
+        cantidad: parseInt(document.getElementById("formQty").value),
+        num_lote: document.getElementById("formLot").value,
+        fecha_caducidad: document.getElementById("formExp").value,
+        doc_referencia: document.getElementById("formRef").value,
+        prescriptor_destino: document.getElementById("formDest").value,
+        signature_password: document.getElementById("signPass").value,
+        signature_totp: document.getElementById("signTotp").value
+      };
+
+      try {
+        const res = await fetch("/ledger/movement", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Error en firma");
+
+        msg.className = "text-[11px] text-center text-teal-400";
+        msg.textContent = `✓ Movimiento #${data.id_movimiento} firmado y asentado.`;
+        document.getElementById("signPass").value = "";
+        document.getElementById("signTotp").value = "";
+
+        await loadSummary();
+        await loadTraceability(payload.id_producto);
+      } catch (err) {
+        msg.className = "text-[11px] text-center text-rose-400";
+        msg.textContent = err.message;
+      }
+    }
+
+    function exportCSV() {
+      window.open(`/ledger/export/csv/${selectedProductId}`, '_blank');
+    }
+  </script>
+</body>
+</html>

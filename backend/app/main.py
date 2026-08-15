@@ -8,7 +8,6 @@ from fastapi.staticfiles import StaticFiles
 from backend.app.core.config import settings
 from backend.app.routers import auth, ledger
 
-# Configuración básica de logging estándar
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pharma_api")
 
@@ -18,6 +17,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# 1. CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,11 +26,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Incluir routers funcionales
+# 2. Rutas API (Prioridad de coincidencia)
 app.include_router(auth.router)
 app.include_router(ledger.router)
 
-# Ruta y montaje del frontend estático
+@app.get("/health", tags=["Sistema"])
+async def health_check():
+    return {"status": "HEALTHY", "environment": settings.ENVIRONMENT, "gxp_compliant": True}
+
+# 3. Montaje de Estáticos y Frontend
 static_dir = os.path.join(os.path.dirname(__file__), "static")
 if not os.path.exists(static_dir):
     os.makedirs(static_dir)
@@ -39,11 +43,4 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 @app.get("/", include_in_schema=False)
 async def serve_frontend():
-    index_path = os.path.join(static_dir, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
-    return {"message": "API activa. Frontend no encontrado en /static/index.html"}
-
-@app.get("/health", tags=["Sistema"])
-async def health_check():
-    return {"status": "HEALTHY", "environment": settings.ENVIRONMENT, "gxp_compliant": True}
+    return FileResponse(os.path.join(static_dir, "index.html"))

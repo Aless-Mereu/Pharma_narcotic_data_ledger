@@ -25,4 +25,5 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 def verify_totp_code(secret: str, code: str) -> bool:
     totp = pyotp.TOTP(secret)
-    return totp.verify(code)
+    # valid_window=1 acepta el token actual, el inmediatamente anterior (-30s) y el posterior (+30s)
+    return totp.verify(code, valid_window=1)
