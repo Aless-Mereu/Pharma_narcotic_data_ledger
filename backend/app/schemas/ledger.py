@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime, date
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from enum import Enum
 
 class TipoMovimientoEnum(str, Enum):
@@ -59,22 +59,6 @@ class MovementResponse(BaseModel):
     class Config:
         from_attributes = True
 
-from typing import Any, Dict, List
-
-class AuditTrailResponse(BaseModel):
-    id_audit: int
-    tabla_afectada: str
-    operacion: str
-    id_registro_afectado: int
-    datos_previos: Optional[Dict[str, Any]] = None
-    datos_nuevos: Optional[Dict[str, Any]] = None
-    id_usuario_db: Optional[str] = None
-    ip_origen: Optional[str] = None
-    timestamp_ntp: datetime
-
-    class Config:
-        from_attributes = True
-
 class LedgerEntryResponse(BaseModel):
     id_movimiento: int
     id_producto: int
@@ -89,6 +73,20 @@ class LedgerEntryResponse(BaseModel):
     estado: str
     id_usuario_firma: int
     timestamp_servidor: datetime
+
+    class Config:
+        from_attributes = True
+
+class AuditTrailResponse(BaseModel):
+    id_audit: int
+    tabla_afectada: str
+    operacion: str
+    id_registro_afectado: int
+    datos_previos: Optional[Dict[str, Any]] = None
+    datos_nuevos: Optional[Dict[str, Any]] = None
+    id_usuario_db: Optional[str] = None
+    ip_origen: Optional[str] = None
+    timestamp_ntp: datetime
 
     class Config:
         from_attributes = True

@@ -26,20 +26,20 @@ CREATE TABLE IF NOT EXISTS productos_estupefacientes (
 
 -- 3. Libro Diario de Estupefacientes (GAMP 5 Append-Only)
 CREATE TABLE IF NOT EXISTS libro_estupefacientes (
-    id_movimiento BIGSERIAL PRIMARY KEY,
-    id_producto INT REFERENCES productos_estupefacientes(id_producto) NOT NULL,
-    tipo_movimiento VARCHAR(20) CHECK (tipo_movimiento IN ('ENTRADA', 'SALIDA', 'AJUSTE_MERMA', 'STORNO')) NOT NULL,
+    id_movimiento SERIAL PRIMARY KEY,
+    id_producto INTEGER NOT NULL REFERENCES productos(id_producto),
+    tipo_movimiento VARCHAR(20) NOT NULL CHECK (tipo_movimiento IN ('ENTRADA', 'SALIDA', 'AJUSTE_STORNO', 'AJUSTE_MERMA')),
     num_lote VARCHAR(50) NOT NULL,
     fecha_caducidad DATE NOT NULL,
-    cantidad INT NOT NULL CHECK (cantidad <> 0),
-    saldo_resultante INT NOT NULL CHECK (saldo_resultante >= 0),
+    cantidad INTEGER NOT NULL CHECK (cantidad > 0),
+    saldo_resultante INTEGER NOT NULL CHECK (saldo_resultante >= 0),
     doc_referencia VARCHAR(100) NOT NULL,
     prescriptor_destino VARCHAR(150),
-    motivo_ajuste TEXT,
-    id_usuario_firma INT REFERENCES usuarios(id_usuario) NOT NULL,
-    id_usuario_aprobacion INT REFERENCES usuarios(id_usuario),
-    estado VARCHAR(20) DEFAULT 'CONFIRMADO' CHECK (estado IN ('PENDIENTE_APROBACION', 'CONFIRMADO', 'ANULADO')) NOT NULL,
-    timestamp_servidor TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+    motivo_ajuste VARCHAR(255),
+    id_usuario_firma INTEGER NOT NULL REFERENCES usuarios(id_usuario),
+    id_usuario_aprobacion INTEGER REFERENCES usuarios(id_usuario),
+    estado VARCHAR(20) NOT NULL DEFAULT 'CONFIRMADO' CHECK (estado IN ('BORRADOR', 'CONFIRMADO', 'ANULADO')),
+    timestamp_servidor TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
 );
 
 -- 4. Audit Trail Inmutable (Anexo 11 / 21 CFR Part 11)

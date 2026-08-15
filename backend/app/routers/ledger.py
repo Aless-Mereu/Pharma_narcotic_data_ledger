@@ -1,17 +1,23 @@
+import io
+import csv
+import logging
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-import logging
-import csv
-import io
-from fastapi.responses import StreamingResponse
-from backend.app.models.domain import AuditTrail
-from backend.app.schemas.ledger import AuditTrailResponse, LedgerEntryResponse
+
 from backend.app.core.database import get_db
 from backend.app.core.security import verify_password, verify_totp_code
-from backend.app.models.domain import LibroEstupefacientes, Usuario
-from backend.app.schemas.ledger import MovementCreate, MovementResponse, StornoRequest, TipoMovimientoEnum
+from backend.app.models.domain import LibroEstupefacientes, Usuario, AuditTrail
+from backend.app.schemas.ledger import (
+    MovementCreate,
+    MovementResponse,
+    StornoRequest,
+    TipoMovimientoEnum,
+    LedgerEntryResponse,
+    AuditTrailResponse
+)
 from backend.app.routers.auth import get_current_user
 
 logger = logging.getLogger("pharma_api")
@@ -136,8 +142,6 @@ async def storno_movement(
     saldo_actual = ultimo_registro.saldo_resultante if ultimo_registro else 0
 
     # 4. Calcular el saldo compensatorio
-    # Si el original fue SALIDA, el storno devuleve el stock (SUMA)
-    # Si el original fue ENTRADA, el storno retira el stock (RESTA)
     if mov_original.tipo_movimiento == TipoMovimientoEnum.SALIDA.value:
         saldo_nuevo = saldo_actual + mov_original.cantidad
     elif mov_original.tipo_movimiento == TipoMovimientoEnum.ENTRADA.value:
@@ -176,11 +180,12 @@ async def storno_movement(
         f"Storno registrado con éxito: Movimiento {mov_storno.id_movimiento} anula Movimiento {mov_original.id_movimiento}")
     return mov_storno
 
+
 @router.get("/book/{id_producto}", response_model=List[LedgerEntryResponse])
 async def get_official_ledger(
-    id_producto: int,
-    current_user: Usuario = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+        id_producto: int,
+        current_user: Usuario = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db)
 ):
     query = (
         select(LibroEstupefacientes)
@@ -194,9 +199,9 @@ async def get_official_ledger(
 
 @router.get("/audit-trail", response_model=List[AuditTrailResponse])
 async def get_audit_trail(
-    limit: int = 50,
-    current_user: Usuario = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+        limit: int = 50,
+        current_user: Usuario = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db)
 ):
     query = select(AuditTrail).order_by(AuditTrail.id_audit.desc()).limit(limit)
     result = await db.execute(query)
@@ -206,9 +211,9 @@ async def get_audit_trail(
 
 @router.get("/export/csv/{id_producto}")
 async def export_ledger_csv(
-    id_producto: int,
-    current_user: Usuario = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+        id_producto: int,
+        current_user: Usuario = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db)
 ):
     query = (
         select(LibroEstupefacientes)
