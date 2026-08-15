@@ -253,3 +253,83 @@ async def export_ledger_csv(
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+from sqlalchemy import func
+from backend.app.models.domain import ProductoEstupefaciente
+from backend.app.schemas.ledger import ProductStockSummary, MovementTraceDetail
+
+@router.get("/metrics/summary", response_model=List[ProductStockSummary])
+async def get_products_stock_summary(
+    current_user: Usuario = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    products_res = await db.execute(select(ProductoEstupefaciente).order_by(ProductoEstupefaciente.id_producto.asc()))
+    productos = products_res.scalars().all()
+
+    summary_list = []
+    for prod in productos:
+        mov_res = await db.execute(
+            select(LibroEstupefacientes)
+            .where(LibroEstupefacientes.id_producto == prod.id_producto)
+            .order_by(LibroEstupefacientes.id_movimiento.asc())
+        )
+        movimientos = mov_res.scalars().all()
+
+        stock_actual = movimientos[-1].saldo_resultante if movimientos else 0
+        ultimo_mov = movimientos[-1].timestamp_servidor if movimientos else None
+
+        total_entradas = sum(m.cantidad for m in movimientos if m.tipo_movimiento == "ENTRADA")
+        total_salidas = sum(m.cantidad for m in movimientos if m.tipo_movimiento == "SALIDA")
+        total_stornos = sum(m.cantidad for m in movimientos if m.tipo_movimiento == "AJUSTE_STORNO")
+
+        summary_list.append(ProductStockSummary(
+            id_producto=prod.id_producto,
+            codigo_nacional=prod.codigo_nacional,
+            nombre_comercial=prod.nombre_comercial,
+            principio_activo=prod.principio_activo,
+            presentacion=prod.presentacion,
+            lista_estupefaciente=prod.lista_estupefaciente,
+            stock_actual=stock_actual,
+            total_entradas=total_entradas,
+            total_salidas=total_salidas,
+            total_ajustes_storno=total_stornos,
+            ultimo_movimiento=ultimo_mov
+        ))
+
+    return summary_list
+
+
+@router.get("/metrics/traceability/{id_producto}", response_model=List[MovementTraceDetail])
+async def get_product_traceability(
+    id_producto: int,
+    current_user: Usuario = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    # Query con JOIN para resolver metadatos del usuario firmante
+    query = (
+        select(LibroEstupefacientes, Usuario)
+        .join(Usuario, LibroEstupefacientes.id_usuario_firma == Usuario.id_usuario)
+        .where(LibroEstupefacientes.id_producto == id_producto)
+        .order_by(LibroEstupefacientes.id_movimiento.asc())
+    )
+    result = await db.execute(query)
+    rows = result.all()
+
+    traceability_data = []
+    for mov, user in rows:
+        traceability_data.append(MovementTraceDetail(
+            id_movimiento=mov.id_movimiento,
+            timestamp_servidor=mov.timestamp_servidor,
+            tipo_movimiento=mov.tipo_movimiento,
+            cantidad=mov.cantidad,
+            saldo_resultante=mov.saldo_resultante,
+            num_lote=mov.num_lote,
+            fecha_caducidad=mov.fecha_caducidad,
+            doc_referencia=mov.doc_referencia,
+            prescriptor_destino=mov.prescriptor_destino,
+            motivo_ajuste=mov.motivo_ajuste,
+            usuario_firma_nombre=user.nombre_completo,
+            usuario_firma_rol=user.rol
+        ))
+
+    return traceability_data

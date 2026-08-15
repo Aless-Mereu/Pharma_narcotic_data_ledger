@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 from enum import Enum
@@ -46,6 +46,8 @@ class StornoRequest(BaseModel):
     signature_totp: str = Field(..., description="Código TOTP para firma electrónica")
 
 class MovementResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id_movimiento: int
     id_producto: int
     tipo_movimiento: str
@@ -56,10 +58,9 @@ class MovementResponse(BaseModel):
     estado: str
     timestamp_servidor: datetime
 
-    class Config:
-        from_attributes = True
-
 class LedgerEntryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id_movimiento: int
     id_producto: int
     tipo_movimiento: str
@@ -74,10 +75,9 @@ class LedgerEntryResponse(BaseModel):
     id_usuario_firma: int
     timestamp_servidor: datetime
 
-    class Config:
-        from_attributes = True
-
 class AuditTrailResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id_audit: int
     tabla_afectada: str
     operacion: str
@@ -88,5 +88,33 @@ class AuditTrailResponse(BaseModel):
     ip_origen: Optional[str] = None
     timestamp_ntp: datetime
 
-    class Config:
-        from_attributes = True
+class ProductStockSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id_producto: int
+    codigo_nacional: str
+    nombre_comercial: str
+    principio_activo: str
+    presentacion: str
+    lista_estupefaciente: str
+    stock_actual: int
+    total_entradas: int
+    total_salidas: int
+    total_ajustes_storno: int
+    ultimo_movimiento: Optional[datetime] = None
+
+class MovementTraceDetail(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id_movimiento: int
+    timestamp_servidor: datetime
+    tipo_movimiento: str
+    cantidad: int
+    saldo_resultante: int
+    num_lote: str
+    fecha_caducidad: date
+    doc_referencia: str
+    prescriptor_destino: Optional[str] = None
+    motivo_ajuste: Optional[str] = None
+    usuario_firma_nombre: str
+    usuario_firma_rol: str

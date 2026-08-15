@@ -1,38 +1,49 @@
+import os
 import logging
-import traceback
-from fastapi import FastAPI, Request, status
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
 from backend.app.core.config import settings
 from backend.app.routers import auth, ledger
 
-# Configurar logging
+# Configuración básica de logging estándar
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pharma_api")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    version="1.0.0",
-    description="API para el Control y Libro Diligenciado Digital de Estupefacientes (GAMP 5 / Anexo 11)"
+    description="Sistema Digital Validado para Registro Inmutable del Libro Oficial de Estupefacientes (GAMP 5 / 21 CFR Part 11 / Anexo 11)",
+    version="1.0.0"
 )
 
-# Exception Handler Global
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    error_trace = traceback.format_exc()
-    logger.error(f"Excepción no controlada en {request.url.path}: {str(exc)}\n{error_trace}")
-    return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "error": "INTERNAL_SERVER_ERROR",
-            "detail": str(exc),
-            "type": exc.__class__.__name__,
-            "path": request.url.path
-        }
-    )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# Incluir routers funcionales
 app.include_router(auth.router)
 app.include_router(ledger.router)
 
-@app.get("/health", tags=["Salud del Sistema"])
+# Ruta y montaje del frontend estático
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if not os.path.exists(static_dir):
+    os.makedirs(static_dir)
+
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+@app.get("/", include_in_schema=False)
+async def serve_frontend():
+    index_path = os.path.join(static_dir, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"message": "API activa. Frontend no encontrado en /static/index.html"}
+
+@app.get("/health", tags=["Sistema"])
 async def health_check():
-    return {"status": "HEALTHY", "system": settings.PROJECT_NAME}
+    return {"status": "HEALTHY", "environment": settings.ENVIRONMENT, "gxp_compliant": True}

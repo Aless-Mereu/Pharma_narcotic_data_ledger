@@ -21,7 +21,7 @@ class ProductoEstupefaciente(Base):
     __tablename__ = "productos_estupefacientes"
 
     id_producto = Column(Integer, primary_key=True, index=True)
-    codigo_nacional = Column(String(20), unique=True, nullable=False, index=True)
+    codigo_nacional = Column(String(20), unique=True, nullable=False)
     nombre_comercial = Column(String(100), nullable=False)
     principio_activo = Column(String(100), nullable=False)
     presentacion = Column(String(100), nullable=False)
